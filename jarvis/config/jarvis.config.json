@@ -1,0 +1,31 @@
+{
+  "owner": "Faris",
+  "wake": {
+    "phrase": "wake up jarvis",
+    "clapPattern": { "claps": 2, "windowMs": 1200, "threshold": 0.45 },
+    "greeting": "Good to see you, Faris. Systems online."
+  },
+  "voice": {
+    "tts": { "engine": "say", "voice": "Daniel", "rate": 175 },
+    "sttEngine": "webspeech"
+  },
+  "brain": {
+    "defaultProvider": "ollama",
+    "allowFrontier": true,
+    "frontierProvider": "auto",
+    "frontierTriggers": [
+      "website builder",
+      "build the website",
+      "deep dive",
+      "write the full",
+      "complex"
+    ]
+  },
+  "dashboard": {
+    "panels": ["status", "inbox", "news", "business", "tasks"],
+    "refreshMinutes": 15
+  },
+  "paths": {
+    "websiteBuilder": "../website-builder"
+  }
+}

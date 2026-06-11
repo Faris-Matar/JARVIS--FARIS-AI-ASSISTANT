@@ -1,0 +1,16 @@
+{
+  "name": "jarvis",
+  "version": "0.1.0",
+  "description": "JARVIS — Faris's Mac-native AI assistant. Local-first intelligence, persistent memory, full skill suite.",
+  "main": "electron/main.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:" />
+  <title>JARVIS</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Standby layer: shown until wake (clap ×2 / "wake up jarvis" / click) -->
+  <div id="standby" class="standby">
+    <div class="reactor">
+      <div class="reactor-ring r1"></div>
+      <div class="reactor-ring r2"></div>
+      <div class="reactor-ring r3"></div>
+      <div class="reactor-core"></div>
+    </div>
+    <p class="standby-label">J.A.R.V.I.S — STANDBY</p>
+    <p class="standby-hint">clap twice · say “wake up Jarvis” · or click</p>
+    <p class="standby-mic" id="standby-mic">mic: initialising…</p>
+  </div>
+
+  <!-- Main HUD -->
+  <div id="hud" class="hud hidden">
+    <header class="hud-top">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <h1>J.A.R.V.I.S</h1>
+      </div>
+      <div class="topline">
+        <span id="clock" class="mono"></span>
+        <span id="brain-status" class="mono dim">brain: …</span>
+        <span id="mic-status" class="mono dim">mic: …</span>
+      </div>
+    </header>
+
+    <main class="hud-grid">
+      <!-- Conversation -->
+      <section class="panel chat-panel">
+        <h2 class="panel-title">// CONVERSATION</h2>
+        <div id="chat-log" class="chat-log" aria-live="polite"></div>
+        <form id="chat-form" class="chat-input">
+          <button type="button" id="mic-btn" title="Hold to talk" aria-label="Voice input">◉</button>
+          <input id="chat-text" type="text" placeholder="Talk to me, Faris…" autocomplete="off" />
+          <button type="submit" id="send-btn">SEND</button>
+        </form>
+      </section>
+
+      <!-- Dashboard panels -->
+      <section class="panel" id="panel-status">
+        <h2 class="panel-title">// SYSTEMS</h2>
+        <div class="panel-body" id="status-body">…</div>
+      </section>
+
+      <section class="panel" id="panel-business">
+        <h2 class="panel-title">// BUSINESS · INTELISITE</h2>
+        <div class="panel-body" id="business-body">…</div>
+      </section>
+
+      <section class="panel" id="panel-inbox">
+        <h2 class="panel-title">// INBOX</h2>
+        <div class="panel-body" id="inbox-body">…</div>
+      </section>
+
+      <section class="panel" id="panel-news">
+        <h2 class="panel-title">// INTELLIGENCE BRIEFING</h2>
+        <div class="panel-body" id="news-body">…</div>
+      </section>
+
+      <section class="panel" id="panel-tasks">
+        <h2 class="panel-title">// CURRENT TASKS</h2>
+        <div class="panel-body" id="tasks-body">…</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="voice.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
