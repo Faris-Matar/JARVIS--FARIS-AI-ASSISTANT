@@ -1,0 +1,13 @@
+{
+  "name": "website-builder",
+  "version": "0.1.0",
+  "description": "Standalone pipeline: client intake → brand brief → design directions → copy → code → QC → deployable site",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "bin": { "website-builder": "./cli.js" },
+  "scripts": {
+    "start": "node cli.js"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

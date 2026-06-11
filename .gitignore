@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets — never commit keys
+.env
+*.local
+jarvis/config/credentials/
+jarvis/config/token.json
+
+# Generated client sites (each gets its own repo when shipped)
+website-builder/output/*
+!website-builder/output/.gitkeep
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Build artifacts
+dist/
+build/
+out/
