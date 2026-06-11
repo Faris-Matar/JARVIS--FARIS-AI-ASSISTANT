@@ -1,25 +1,49 @@
-# Projects & Goals
+# Projects & Goals — current state
 
-> Living document. Jarvis updates this as projects move; Faris edits freely.
+> Living document. Jarvis updates this as things move; Faris edits freely.
 
-## InteliSite (web design business)
-- Status: active
-- Goal: premium, unique 3D/scroll sites; automate delivery with the Website
-  Builder Machine so Faris only handles creative direction and final review
-- Pipeline: see `business status` for live website-builder jobs
+## Right now (priority order)
+
+1. **Launch cold email outreach for InteliSite** — land the first clients.
+   Kiran leads outreach strategy and copy; Faris supports with anything
+   technical (domain setup, deliverability, landing pages)
+2. **Land first InteliSite clients** and run them through the Website
+   Builder Machine
+3. **Transition to Mac** — on arrival: run docs/SETUP-MAC.md, Jarvis goes
+   fully operational (Ollama, whisper.cpp, Electron, `say`)
+4. **Complete the grad role job hunt** — applications tracked by Jarvis,
+   follow-ups surfaced, interview prep on demand
+5. **Build Jarvis into a fully operational system** — this is the meta
+   project; v1.0 UI and skills are live, Mac steps remain
+
+## InteliSite
+
+- Premium web design agency, UK luxury home improvement niche: bespoke
+  kitchens, luxury bathrooms, loft conversions
+- Positioning: unique 3D scroll-driven sites that make luxury renovators
+  look as premium as their work; never templates
+- Pipeline automation: Website Builder Machine (/website-builder in this
+  repo) takes a client from form to deployable review-ready site with
+  Faris's design call gating the build
+- Status: pre-first-client, outreach launching
 
 ## Website Builder Machine
-- Status: v0.1 — pipeline scaffolded, prompts production-grade, reference
-  library seeded
-- Next: first real client through the pipeline; harvest patterns back into
-  the reference library after each build
 
-## Jarvis (this assistant)
-- Status: v0.1 — Electron foundation, dashboard, skills, memory live
-- Next: wire Gmail OAuth; upgrade wake-word STT to whisper.cpp; grow memory
+- v1: pipeline + production prompts + reference library live
+- Run standalone: `cd website-builder && node cli.js --help`
+- Next: first real client through it; harvest the best patterns back into
+  references/ after every build
 
-## Grad role & applications
-- Tracked in the memory log (`(jobhunt)` entries) — ask Jarvis for status
+## Jarvis
 
-## Personal
-- Gym + diet tracked in memory log (`(life)` entries)
+- v1: full HUD UI (browser, Electron-ready), 10 skills, intelligence
+  routing, memory, connectors built
+- Waiting on Mac: Ollama local brain, whisper.cpp wake/STT, Electron wrap,
+  macOS say voice
+- Gmail connector waiting on OAuth credentials
+
+## Trackers Jarvis maintains
+
+- Job applications: memory/applications.json (jobhunt skill)
+- Revenue ledger: memory/ledger.json (business skill)
+- Gym, diet, personal: memory/log/*.md tagged (life)

@@ -9,9 +9,12 @@ const { loadEnv } = require('../env')
 
 loadEnv()
 
+// NOTE: the easier path is the INBOX screen in the UI (the core server has
+// the same flow built in at /api/gmail/auth-url). This script is the
+// headless fallback.
 const PORT = 8765
 const REDIRECT = `http://127.0.0.1:${PORT}/callback`
-const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose'
+const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send'
 const TOKEN_PATH = path.join(__dirname, '..', '..', 'config', 'token.json')
 
 const { GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET } = process.env

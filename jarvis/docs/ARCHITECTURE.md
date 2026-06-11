@@ -1,100 +1,113 @@
 # JARVIS Architecture
 
 ```
-┌────────────────────────────  Electron  ────────────────────────────┐
-│                                                                    │
-│  renderer/ (HUD)                    electron/main.js               │
-│  ┌──────────────────┐   IPC via     ┌────────────────────────────┐ │
-│  │ index.html       │   preload.js  │ window / lifecycle         │ │
-│  │ styles.css  HUD  │ ◄──────────►  │ TTS (macOS `say`)          │ │
-│  │ app.js  dashboard│  whitelisted  │ jarvis:ask / :wake /       │ │
-│  │ voice.js wake+STT│  surface only │ :dashboard / :memory       │ │
-│  └──────────────────┘               └─────────────┬──────────────┘ │
-│                                                   │                │
-│                          core/                    ▼                │
-│  ┌───────────────┐   ┌──────────────┐   ┌──────────────────┐      │
-│  │ skills/       │──►│ brain/router │──►│ providers        │      │
-│  │ 10 skills +   │   │ local-first, │   │ ollama (default) │      │
-│  │ dispatcher    │   │ frontier only│   │ claude / openai  │      │
-│  └──────┬────────┘   │ when needed  │   │ (optional keys)  │      │
-│         │            └──────────────┘   └──────────────────┘      │
-│         ▼                                                          │
-│  ┌───────────────┐        ┌─────────────────────────────────┐     │
-│  │ memory/       │        │ ../website-builder (STANDALONE) │     │
-│  │ markdown,     │        │ web-builder skill shells out to │     │
-│  │ committed     │        │ its CLI — one-way dependency    │     │
-│  └───────────────┘        └─────────────────────────────────┘     │
-└────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  ui/  (React + Vite + Framer Motion — browser now, Electron later)  │
+│                                                                     │
+│  Standby ──wake──▶ BootSequence ──▶ TopBar + Conversation + Screens │
+│  voice.js: clap detection · wake phrase · push-to-talk · TTS        │
+│                          │  fetch /api/*                            │
+└──────────────────────────┼──────────────────────────────────────────┘
+                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  server/server.js  (node:http, zero deps, port 7747)                │
+│  /status /config /wake /ask /dashboard /memory /news                │
+│  /builder/* /gmail/* (incl. OAuth callback) /skill/:name /speak     │
+│  also serves ui/dist  ←  Electron just opens a window on this       │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           ▼
+┌──────────────┐   ┌───────────────────┐   ┌────────────────────────┐
+│ skills/      │──▶│ brain/router      │──▶│ providers              │
+│ 10 modules + │   │ multi-skill intent│   │ ollama (local, free)   │
+│ dispatcher   │   │ local→frontier    │   │ claude / openai (keys) │
+└──────┬───────┘   │ session memory    │   │ none → honest fallback │
+       │           │ auto-distillation │   └────────────────────────┘
+       ▼           └───────────────────┘
+┌──────────────┐        ┌──────────────────────────────────────┐
+│ memory/      │        │ ../website-builder (STANDALONE)      │
+│ md + json,   │        │ web-builder skill + /builder routes  │
+│ committed    │        │ shell out to its CLI. One-way dep.   │
+└──────────────┘        └──────────────────────────────────────┘
 ```
 
 ## Request flow
 
-1. Input arrives (typed, or voice → transcript) → `jarvis:ask` IPC.
-2. `core/skills/index.js` checks the "remember …" shortcut, then trigger
-   regexes; first matching skill executes with `ctx = { brain, memory, config }`.
-3. No match → open conversation: `brain.think()` with the JARVIS persona +
-   `memory.contextBlock()` (profile, preferences, projects, recent log).
-4. Reply returns to the renderer; if input was voice, main process speaks it
-   (`say -v <voice>`); the interaction is traced into the memory log.
+1. Input (typed, or voice transcript) → `POST /api/ask`.
+2. `core/skills/index.js`: "remember…" shortcut, then **multi-skill intent
+   detection** — every skill whose triggers match runs (capped at 3), in
+   parallel, answers merged under per-skill headings. One match runs clean;
+   zero matches falls through to open conversation.
+3. Every brain call carries: the JARVIS persona (concise, direct, no em
+   dashes, no sycophancy, pushback expected) + the full memory context +
+   the session history block.
+4. Reply returns with `skills`, `tier` (local/frontier/offline) and
+   optional `spoken` (short line for TTS); the UI animates it in, speaks it
+   if the input was voice, and refreshes affected panels.
 
-## Brain routing (free-first, spend-when-it-matters)
+## Intelligence routing
 
 `core/brain/router.js`:
 
-- Default: **Ollama** local model. Everything casual, summaries, tracking.
-- Escalation to Claude/GPT-4 happens only when: `allowFrontier` is true in
-  config AND (the skill forces it for a genuinely heavy task — e.g. cover
-  letters, deep dives, gnarly code — or the input matches a
-  `frontierTriggers` phrase).
-- Frontier failure falls back to local. Jarvis never goes silent.
-- Frontier replies are labelled in the UI (`· frontier model`) so spend is
-  always visible.
+- **Local first.** Ollama for everything by default.
+- **Frontier when earned:** a skill forces it (`forceFrontier` — research,
+  cover letters, heavy code) or the input hits a `frontierTriggers` phrase,
+  AND `allowFrontier` is on (SYSTEMS screen toggle). Frontier replies are
+  labelled in the conversation.
+- **Fallback chain:** frontier failure → local; nothing reachable → an
+  honest reply stating exactly what Jarvis would do with a model and how to
+  attach one. Skills with mechanical layers (gmail triage counts, news
+  selection, all trackers, builder control) keep working with no model.
+- **Session memory:** last 60 turns held in RAM, last 14 injected into
+  every prompt. Every ~8 turns the brain distils durable facts into the
+  permanent log (`(distilled)` entries) using whatever model is available.
 
 ## Memory model
 
-Plain Markdown in `jarvis/memory/`, committed. Three layers:
+Three layers in `jarvis/memory/`, all committed:
 
-1. **Core files** (profile / preferences / projects) — curated, long-lived.
-2. **Tasks** — `tasks.md`, checkbox list, dashboard-visible.
-3. **Log** — `log/YYYY-MM.md`, append-only: explicit "remember" notes,
-   `(life)` / `(jobhunt)` tracking entries, interaction traces. The context
-   block injects core files + the last ~60 log lines.
+1. **Core files** — profile.md / preferences.md / projects.md. Fully
+   populated: InteliSite, Kiran's lanes vs Faris's, taste rules, stack,
+   goals, communication rules.
+2. **Structured stores** — ledger.json (revenue), applications.json (job
+   hunt), tasks.md (dashboard board).
+3. **Log** — log/YYYY-MM.md, append-only: explicit "remember" notes,
+   tagged tracker entries `(life/gym)` `(jobhunt)` `(business)`, and
+   distilled conversation facts.
 
-Growing smarter over time = the log accumulating + periodically promoting
-stable facts from the log into the core files (do it by hand or ask Jarvis to
-draft the promotion).
+`contextBlock()` = core files + last 50 log lines, injected everywhere.
 
 ## Voice
 
-- **Clap wake** (`renderer/voice.js`): Web Audio analyser, amplitude-spike
-  detection — N sharp peaks within `windowMs` (config:
-  `wake.clapPattern`). Fully local, always works.
-- **Wake phrase + push-to-talk STT**: Web Speech API, best-effort in
-  Electron (Chromium's recognizer is network-backed and not guaranteed).
-- **Upgrade path — whisper.cpp** (recommended endgame for fully local STT):
-  run `whisper.cpp` in streaming mode as a child process from main.js, pipe
-  mic audio via `sox`/`ffmpeg`, watch the transcript stream for the wake
-  phrase, and expose results over the same IPC events. Slot it in behind
-  `JarvisVoice.listenOnce()` and the wake watcher; the rest of the app
-  doesn't change. (`config.voice.sttEngine: "whisper"` is reserved for this.)
-- **TTS**: macOS `say` with a configurable voice (default "Daniel") — clean,
-  calm, free, offline. Swap to a neural TTS later by replacing `speak()` in
-  `electron/main.js`.
+- **Clap wake:** Web Audio amplitude transients, N peaks in a window,
+  threshold tunable on the SYSTEMS screen. Fully local, works today.
+- **Wake phrase / push-to-talk:** Web Speech API where available.
+  **whisper.cpp upgrade (Mac):** server-side streaming transcription behind
+  the same `voice.js` surface — see docs/SETUP-MAC.md §7.
+- **TTS:** browser synthesis now; `voice.tts.engine: "say"` routes through
+  `POST /api/speak` to macOS `say` (server already implements it).
+- **Greetings** (`core/greetings.js`): pooled by time of day, never the
+  same line twice running, appends one live fact (builds waiting, client
+  forms) when there is one.
+
+## Electron (the Mac step)
+
+`electron/main.js` ≈ 40 lines: require the server, open a BrowserWindow on
+`localhost:7747`, auto-grant mic. `npm run mac` = build UI + launch. The
+UI cannot tell the difference, by construction.
 
 ## Security posture
 
-- Renderer is sandboxed: `contextIsolation` on, `nodeIntegration` off; all
-  system access flows through the whitelisted preload surface.
-- Secrets live in `.env` / `config/token.json`, both gitignored.
-- The files skill executes only explicitly-pathed operations; fuzzy requests
-  get a proposed plan first, never blind execution.
+- Server binds locally; secrets in `.env` + `config/token.json`, gitignored.
+- Gmail scopes: readonly + send. Sending requires a click on a draft Faris
+  has seen. No delete scope.
+- Files skill: explicit paths only, no delete verb, plan-first for fuzzy
+  requests. Builder artifact route is path-traversal guarded.
 
 ## Adding a skill
 
-1. Create `core/skills/<name>.js` exporting
-   `{ name, description, triggers: [RegExp], async execute(input, ctx) }`.
-2. Register it in `core/skills/index.js` (import + add to `SKILLS`).
-3. Return `{ reply, spoken?, data? }` — `spoken` is the short TTS line when
-   the full reply is too long to read aloud.
-
-That's the whole contract.
+1. `core/skills/<name>.js` exporting
+   `{ name, description, triggers: [RegExp], async execute(input, ctx) }`
+   where `ctx = { brain, memory, config }`.
+2. Register in `core/skills/index.js` (import + `SKILLS` + label).
+3. Return `{ reply, spoken?, data?, tier? }`. `data` keys feed dashboards.
+4. Optional: a screen in `ui/src/components/screens/` + a TopBar nav entry.

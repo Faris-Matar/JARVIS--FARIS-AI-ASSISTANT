@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────
-# JARVIS + Website Builder — one-command setup for a fresh Mac.
+# JARVIS + Website Builder — one-command setup.
 #   git clone <repo> && cd <repo> && ./setup.sh
-# Everything installs; Jarvis remembers you (memory/ is in the repo);
-# the website builder is ready to run. Nothing is lost between machines.
+#
+# Works on any machine with (or installable) Node 18+. On macOS it also
+# installs Ollama and pulls the local model. On the new Mac, follow
+# docs/SETUP-MAC.md for the complete zero-to-operational list (whisper.cpp,
+# Electron wrap, native voice).
 # ─────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -14,76 +17,68 @@ say_warn() { printf "\033[1;33m  ⚠ %s\033[0m\n" "$1"; }
 
 say_step "JARVIS setup starting"
 
-# ── 1. Homebrew (macOS package manager) ──────────────────────────────────
-if [[ "$(uname)" == "Darwin" ]] && ! command -v brew >/dev/null 2>&1; then
-  say_step "Installing Homebrew"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
-fi
-command -v brew >/dev/null 2>&1 && say_ok "Homebrew ready"
-
-# ── 2. Node.js ≥ 18 ──────────────────────────────────────────────────────
+# ── 1. Node.js ≥ 18 ──────────────────────────────────────────────────────
 if ! command -v node >/dev/null 2>&1 || [[ "$(node -e 'console.log(process.versions.node.split(".")[0])')" -lt 18 ]]; then
-  say_step "Installing Node.js"
-  if command -v brew >/dev/null 2>&1; then brew install node; else
-    say_warn "Install Node.js 18+ manually (https://nodejs.org) and re-run."; exit 1
+  if [[ "$(uname)" == "Darwin" ]]; then
+    say_step "Installing Node.js via Homebrew"
+    command -v brew >/dev/null 2>&1 || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+    brew install node
+  else
+    say_warn "Install Node.js 18+ (https://nodejs.org) and re-run."; exit 1
   fi
 fi
 say_ok "Node $(node -v)"
 
-# ── 3. Ollama + local model (the free-forever brain) ─────────────────────
-if ! command -v ollama >/dev/null 2>&1; then
-  say_step "Installing Ollama (local model runtime)"
-  if command -v brew >/dev/null 2>&1; then brew install ollama; else
-    say_warn "Install Ollama manually: https://ollama.com — Jarvis runs API-only until then."
+# ── 2. macOS only: Ollama + local model (the free-forever brain) ─────────
+if [[ "$(uname)" == "Darwin" ]]; then
+  if ! command -v ollama >/dev/null 2>&1; then
+    say_step "Installing Ollama"
+    brew install ollama
   fi
-fi
-if command -v ollama >/dev/null 2>&1; then
-  say_ok "Ollama installed"
-  # make sure the server is up, then pull the default model
-  if ! curl -s --max-time 2 http://localhost:11434/api/tags >/dev/null 2>&1; then
-    say_step "Starting Ollama server"
-    (ollama serve >/dev/null 2>&1 &)
-    sleep 3
-  fi
+  brew services start ollama >/dev/null 2>&1 || (ollama serve >/dev/null 2>&1 &)
+  sleep 2
   MODEL="${JARVIS_LOCAL_MODEL:-llama3.1}"
-  if ! ollama list 2>/dev/null | grep -q "$MODEL"; then
+  ollama list 2>/dev/null | grep -q "$MODEL" || {
     say_step "Pulling local model: $MODEL (one-time, a few GB)"
-    ollama pull "$MODEL" || say_warn "Model pull failed — run 'ollama pull $MODEL' later."
-  fi
-  say_ok "Local brain ready ($MODEL)"
+    ollama pull "$MODEL" || say_warn "Pull failed; run 'ollama pull $MODEL' later."
+  }
+  say_ok "Local brain ready"
+else
+  say_warn "Not macOS: skipping Ollama. Jarvis runs with API keys or in graceful no-brain mode."
 fi
 
-# ── 4. Jarvis: dependencies + env ────────────────────────────────────────
-say_step "Installing Jarvis (Electron app)"
+# ── 3. Jarvis: core + UI build ───────────────────────────────────────────
+say_step "Setting up Jarvis"
 cd "$ROOT/jarvis"
-npm install --no-fund --no-audit
 [[ -f .env ]] || cp .env.example .env
-say_ok "Jarvis installed (.env created — API keys optional)"
+npm install --no-fund --no-audit
+say_step "Building the HUD (ui/)"
+npm run ui:build
+say_ok "Jarvis ready — run: cd jarvis && npm start → http://localhost:7747"
 
-# ── 5. Website builder: env (zero npm deps by design) ────────────────────
+# ── 4. Website builder (zero npm deps by design) ─────────────────────────
 say_step "Preparing Website Builder"
 cd "$ROOT/website-builder"
 [[ -f .env ]] || cp .env.example .env
 node --check cli.js
-say_ok "Website builder ready (standalone — no Jarvis required)"
+say_ok "Website builder ready (standalone)"
 
-# ── 6. Memory check — Jarvis remembers you from the repo ─────────────────
+# ── 5. Memory check — Jarvis knows Faris from the repo ───────────────────
 say_step "Checking memory"
-if [[ -f "$ROOT/jarvis/memory/profile.md" ]]; then
-  say_ok "Memory present — Jarvis knows who you are from day one"
+if grep -q "InteliSite" "$ROOT/jarvis/memory/profile.md" 2>/dev/null; then
+  say_ok "Memory populated — Jarvis knows who you are from day one"
 else
-  say_warn "memory/profile.md missing — Jarvis will start with a blank slate"
+  say_warn "memory/profile.md looks empty — Jarvis starts with a blank slate"
 fi
 
-# ── Done ─────────────────────────────────────────────────────────────────
 printf "\n\033[1;32m══════════════════════════════════════════════════\033[0m\n"
 printf "\033[1;32m  Setup complete.\033[0m\n\n"
-printf "  Run Jarvis:            cd jarvis && npm start\n"
-printf "  Run website builder:   cd website-builder && node cli.js --help\n\n"
-printf "  Optional power-ups (jarvis/.env):\n"
-printf "    ANTHROPIC_API_KEY / OPENAI_API_KEY  → frontier intelligence\n"
-printf "    GMAIL_CLIENT_ID + GMAIL_CLIENT_SECRET, then:\n"
-printf "      cd jarvis && node core/skills/gmail-auth.js   → inbox skill\n\n"
+printf "  Jarvis:           cd jarvis && npm start    → http://localhost:7747\n"
+printf "  UI dev mode:      cd jarvis/ui && npm run dev\n"
+printf "  Website builder:  cd website-builder && node cli.js --help\n"
+printf "  New Mac:          docs/SETUP-MAC.md (Ollama, whisper.cpp, Electron)\n\n"
+printf "  Optional keys → jarvis/.env (Claude/OpenAI/Gmail). Guide:\n"
+printf "  jarvis/docs/CONNECTORS.md\n\n"
 printf "  Welcome back, Faris.\n"
 printf "\033[1;32m══════════════════════════════════════════════════\033[0m\n"

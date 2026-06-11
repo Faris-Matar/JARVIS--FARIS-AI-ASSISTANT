@@ -1,102 +1,104 @@
 # JARVIS
 
-Not a chatbot. A Mac-native AI assistant that knows Faris, his work, his life
-and his goals — and executes. Iron Man in every sense: dark holographic-blue
-HUD, wake by clap or voice, persistent memory, a full skill suite, and a
-local-first brain that runs free forever.
+Not a chatbot. Faris's AI assistant in the Iron Man sense: a holographic
+HUD, wake by clap or voice, persistent memory that knows him from first
+boot, ten fully implemented skills, and a local-first brain that escalates
+to frontier models only when the work deserves it.
 
-## Run it
+Runs **in the browser today**, wraps into **Electron on the Mac with zero
+UI changes** (the shell just opens a window onto the same core server).
 
-```bash
-cd jarvis
-npm install
-npm start
+## Architecture
+
+```
+jarvis/
+├── ui/            React + Vite + Framer Motion — every screen of the HUD
+│   └── src/       standby · boot sequence · dashboard · conversation ·
+│                  7 skill screens · memory browser · settings
+├── server/        core server (zero npm deps) — hosts everything below
+│   └── server.js  REST API + serves ui/dist + Gmail OAuth + builder bridge
+├── core/
+│   ├── brain/     intelligence routing: local-first, frontier when earned,
+│   │              session memory, automatic fact distillation
+│   ├── skills/    10 skills, fully implemented (see below)
+│   ├── memory/    persistent memory manager + structured stores
+│   └── greetings.js  varied wake greetings, time-of-day aware
+├── memory/        WHAT JARVIS KNOWS — markdown + json, committed to the repo
+├── config/        jarvis.config.json (wake, voice, brain, panels)
+├── electron/      thin Mac shell (starts server, opens window)
+└── docs/          ARCHITECTURE.md · CONNECTORS.md
 ```
 
-First launch: macOS will ask for microphone permission (wake word + voice
-input). Grant it and you're live. The app opens in **standby** — clap twice,
-say "wake up Jarvis", or click. Jarvis greets you by name and boots the
-dashboard.
+## Run it now (no Mac required)
 
-## What works out of the box (zero API spend)
+```bash
+# terminal 1 — the core
+cd jarvis && npm start                # → http://localhost:7747
 
-- **Local brain** via Ollama (`llama3.1` by default) — all conversation,
-  summaries, daily updates, tracking. Free forever on Mac hardware.
-- **Wake by clap pattern** — fully local Web Audio detection.
-- **Text-to-speech** — clean calm voice via macOS `say` (configure the voice
-  in `config/jarvis.config.json`).
-- **Persistent memory** — everything in `memory/` (committed to the repo;
-  see below).
-- **Dashboard** — systems status, business/website-builder jobs, news
-  briefing, tasks.
-- **Skills** — all ten, though Gmail needs one-time OAuth setup.
+# terminal 2 — the UI in dev mode
+cd jarvis/ui && npm install && npm run dev   # → http://localhost:5173
+```
 
-API keys (`.env`) **add** capability — Claude/GPT-4 for heavy creative work,
-complex reasoning, and the website builder pipeline. They are never required
-for core function, and frontier calls only happen when the task genuinely
-needs them (`brain.allowFrontier` in config turns escalation off entirely).
+Or production-style in one process: `npm run ui:build && npm start` and
+open http://localhost:7747.
+
+Grant the mic when asked. You land on **standby**: double-clap, say "wake
+up Jarvis", or click. Boot sequence runs with real system state, Jarvis
+greets you (greeting varies, time-aware), dashboard assembles.
+
+## What's live right now
+
+| Layer | State |
+|---|---|
+| Full HUD: standby, boot, dashboard, 7 skill screens, memory, settings | ✔ built, animated, Framer Motion throughout |
+| Clap wake (Web Audio amplitude analysis) | ✔ fully local, works in browser |
+| Wake phrase + push-to-talk | ✔ Web Speech (best effort) — whisper.cpp slots in on the Mac |
+| Voice output | ✔ browser synthesis — flips to macOS `say` via config |
+| Intelligence routing: multi-skill intent, local→frontier, graceful no-key mode | ✔ |
+| Conversation memory: session history + auto-distillation to memory log | ✔ |
+| All 10 skills | ✔ fully implemented (Gmail needs its one-time OAuth) |
+| Memory: populated profile, preferences, projects, trackers | ✔ knows Faris day one |
+| Website builder bridge: form → intake → pipeline → direction approval → monitor | ✔ |
+| Local Ollama brain | Mac step (docs/SETUP-MAC.md) |
 
 ## The skills
 
-| Skill | What it does |
+| Skill | Fully implemented behaviour |
 |---|---|
-| gmail | Inbox summary, flags what matters, drafts replies in your voice |
-| news | World / AI / tech briefing, curated to your interests |
-| business | InteliSite status, client pipeline, live website-builder job status |
-| coding | Debug, write, explain — any language, any project, file-aware |
-| web-builder | Checks Gmail for client forms, briefs you, triggers the pipeline on your go |
-| life | Gym & diet tracking, schedule, family reminders |
-| jobhunt | Application tracking, follow-ups, prep, cover letters |
-| research | Deep dives with structured, decision-ready output |
-| files | Full file system ops: create, read, move, organise, open, run |
-| strategy | Thinking partner — genuine pushback, options, recommendation |
+| **gmail** | unread triage, urgency flags, client-form detection, drafts in Faris's voice, sends only on approval |
+| **news** | live feeds (BBC, TechCrunch AI, Ars, HN, Verge) → curated structured briefing with one-line summaries |
+| **business** | live builder job state, decisions waiting on Faris, revenue ledger ("log revenue 1500 deposit…") |
+| **web-builder** | inbox scan → data extraction → intake brief → "create the intake" → "start the pipeline" → "approve direction 2, notes: …" |
+| **coding** | file-aware debugging/writing/explaining, frontier escalation for heavy problems |
+| **life** | "log chest session today" structured gym log, diet log, reminders → task board |
+| **jobhunt** | application tracking with follow-up dates, stage updates, frontier cover letters |
+| **research** | structured deep dives: exec summary → landscape → what it means for Faris → takeaways → recommendation |
+| **files** | list/read/create/move/open/run through the core server; plan-first for fuzzy asks |
+| **strategy** | thinking partner: reasons out loud, strongest counter-case, recommendation, ends with a question back |
 
-Anything that doesn't match a skill falls through to open conversation with
-full memory context — Jarvis figures it out.
-
-### The integration moment
-
-> "Jarvis, check if there's a new client form submission in my inbox and
-> let's start building their website."
-
-Jarvis reads Gmail → finds the submission → briefs you → you discuss
-direction → you say go → it triggers the (fully standalone) website builder
-pipeline, monitors it via `business status`, and brings you the output. The
-pipeline still stops for YOUR design direction call — always.
+Multi-skill routing is real: *"what did I miss in my inbox and is there
+anything from a new client"* runs gmail + web-builder together and merges
+the answer.
 
 ## Memory
 
-```
-memory/profile.md       who you are (long-lived facts)
-memory/preferences.md   how you work, decide, what you like
-memory/projects.md      current projects & goals
-memory/tasks.md         live task list (dashboard panel)
-memory/log/YYYY-MM.md   rolling log of learnings & interactions
-```
+`memory/` is committed. Profile, preferences, projects are fully populated;
+ledger.json and applications.json grow as Faris feeds them;
+`log/YYYY-MM.md` accumulates learnings, including automatic distillation of
+durable facts from conversations every few turns. "Remember that…" writes
+instantly. New Mac = clone = Jarvis knows you.
 
-Plain Markdown, **committed to the repo**. Say "Jarvis, remember that …" and
-it's written down. New Mac? Clone, run setup, and Jarvis knows exactly who
-you are from day one. (If anything in memory is too sensitive for the repo's
-host, move it to a private repo or encrypt — your call; the format is just
-files.)
+## Keys & connectors
 
-## Gmail setup (one-time)
+All optional, all in `.env` (copy `.env.example`). Status lives on the
+SYSTEMS screen; full guide in [docs/CONNECTORS.md](docs/CONNECTORS.md).
+With zero keys and no Ollama, Jarvis still runs: UI, trackers, builder
+control, memory, mechanical inbox/news summaries, and an honest "here's
+what I'd do with a brain attached" for everything else.
 
-1. Google Cloud Console → enable Gmail API → OAuth credentials ("Desktop app")
-2. Put `GMAIL_CLIENT_ID` / `GMAIL_CLIENT_SECRET` in `jarvis/.env`
-3. `node core/skills/gmail-auth.js` → authorise in the browser
+## The Mac step
 
-Token lands in `config/token.json` (gitignored — re-run this step on a new
-machine).
-
-## Honest status notes (v0.1)
-
-- Clap wake: implemented, fully local.
-- Wake phrase & push-to-talk STT: wired to the Web Speech API, which is
-  best-effort inside Electron. The upgrade path is whisper.cpp for fully
-  local recognition — extension point documented in
-  [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Clap wake and typed input
-  always work regardless.
-- Gmail: functional once OAuth is configured.
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full wiring.
+Everything that needs macOS is one document:
+[../docs/SETUP-MAC.md](../docs/SETUP-MAC.md) — Homebrew, Node, Ollama,
+whisper.cpp, `npm run mac` (Electron wrap, single script), voice flip to
+`say`. Under an hour.

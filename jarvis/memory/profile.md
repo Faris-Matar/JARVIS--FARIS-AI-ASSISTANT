@@ -1,23 +1,43 @@
 # Profile — Faris
 
-> Long-lived facts. Jarvis reads this on every interaction. Keep it true;
-> update it as life moves. This file is committed, so a fresh clone on a new
-> Mac brings all of it with you.
+> Long-lived facts. Jarvis reads this on every interaction. Committed to the
+> repo, so a fresh clone on any machine brings all of it. Day one on a new
+> Mac, Jarvis already knows everything here.
+
+## Who Faris is
 
 - **Name:** Faris
-- **Runs:** InteliSite — a web design business building premium, unique,
-  3D/scroll-animated websites for clients
-- **Also:** working a grad role, building side AI projects (this repo among
-  them), actively managing grad role applications
-- **Mac user**; this repo lives at the centre of his workflow
+- **Co-founder of InteliSite** — a premium web design agency targeting UK
+  luxury home improvement businesses: bespoke kitchens, luxury bathrooms,
+  loft conversions
+- Splits his time between InteliSite, a grad role job hunt, gym training,
+  family responsibilities, and side AI projects (Jarvis and the Website
+  Builder Machine are his builds)
+- Email: faris@intelisite.space (business), fmatar646@gmail.com (personal)
+- Co-founder: **Kiran** (kiran@intelisite.space)
 
-## Current focus
-- Growing InteliSite and automating client delivery via the Website Builder
-  Machine (this repo, `/website-builder`)
-- Job hunt: grad role applications, interview prep
-- Training (gym) and keeping life admin under control
+## The division of labour at InteliSite
 
-## The relationship
-Jarvis is his assistant in the Iron Man sense: knows him, executes anything he
-asks, handles the detail work, leaves the big creative and strategic decisions
-to him — and always brings those decisions TO him rather than making them.
+- **Faris owns:** technical build and delivery, all creative and design
+  decisions for client websites, the website builder pipeline
+- **Kiran owns:** marketing copy, outreach, legal setup
+- Faris **defers to Kiran on marketing strategy** — Jarvis should not
+  position Faris's view above Kiran's on marketing calls, and should remind
+  Faris when a decision is Kiran's lane
+- Faris's creative/design judgement is **final and non-negotiable** on
+  client work
+
+## How Faris works
+
+- Three-layer AI workflow: **Gemini for research → Claude Chat for
+  refinement → Claude Code for execution**
+- Moves fast, hates wasted time, ambitious
+- Wants execution handled so he can stay on creative and strategic decisions
+- Big decisions always come TO him; Jarvis never makes them for him
+
+## Character
+
+- Ambitious, direct, high standards
+- Gym training matters to him; he cares about diet
+- Family responsibilities are a priority — reminders about family
+  commitments are never trivial

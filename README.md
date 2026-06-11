@@ -22,39 +22,42 @@ but the dependency only flows in that one direction.
 ├── setup.sh                   ← one-command install: ./setup.sh
 ├── .gitignore
 │
+├── docs/
+│   └── SETUP-MAC.md           ← THE Mac document: zero → fully operational Jarvis
+│
 ├── jarvis/                    ← PROJECT 2: JARVIS
-│   ├── README.md              ← Jarvis overview, architecture, usage
-│   ├── package.json           ← Electron app + dependencies
+│   ├── README.md              ← Jarvis overview, what's live, how to run
+│   ├── package.json           ← scripts: start (server) · ui:dev · ui:build · mac
 │   ├── .env.example           ← optional API keys (Claude / OpenAI / Gmail)
-│   ├── electron/              ← Electron main process
-│   │   ├── main.js            ← app lifecycle, window, IPC, TTS via macOS `say`
-│   │   └── preload.js         ← secure bridge between UI and system
-│   ├── renderer/              ← Iron Man dashboard UI (holographic blue, dark)
-│   │   ├── index.html
-│   │   ├── styles.css
-│   │   ├── app.js             ← dashboard logic, chat, panels
-│   │   └── voice.js           ← clap detection + wake word listener
+│   ├── ui/                    ← the Iron Man HUD (React + Vite + Framer Motion)
+│   │   └── src/
+│   │       ├── App.jsx        ← standby → boot → main state machine
+│   │       ├── voice.js       ← clap wake, wake phrase, push-to-talk, TTS
+│   │       ├── api.js         ← client for the core server
+│   │       └── components/    ← Standby, BootSequence, Reactor, Particles,
+│   │           │                TopBar, Dashboard, Conversation, Waveform…
+│   │           └── screens/   ← Gmail, News, Builder, Business, Research,
+│   │                            Memory, Settings
+│   ├── server/
+│   │   └── server.js          ← core server (zero deps): REST API, OAuth,
+│   │                            builder bridge, serves ui/dist
 │   ├── core/
-│   │   ├── brain/             ← intelligence layer
-│   │   │   ├── router.js      ← local-first model routing (Ollama → API only when needed)
-│   │   │   └── providers/     ← ollama.js, claude.js, openai.js
-│   │   ├── memory/
-│   │   │   └── memory.js      ← persistent memory manager
-│   │   └── skills/            ← one file per skill
-│   │       ├── index.js       ← skill registry + dispatcher
-│   │       ├── gmail.js       ├── news.js        ├── business.js
-│   │       ├── coding.js      ├── web-builder.js ├── life.js
-│   │       ├── jobhunt.js     ├── research.js    ├── files.js
-│   │       └── strategy.js
-│   ├── memory/                ← Jarvis's persistent memory (COMMITTED — this is how
-│   │   ├── profile.md            Jarvis survives machine changes)
-│   │   ├── preferences.md
-│   │   ├── projects.md
-│   │   └── log/               ← rolling memory log entries
+│   │   ├── brain/             ← intelligence routing: local-first, frontier
+│   │   │   └── providers/       when earned, session memory, distillation
+│   │   ├── memory/            ← persistent memory manager + JSON stores
+│   │   ├── greetings.js       ← varied wake greetings
+│   │   └── skills/            ← 10 fully implemented skills + dispatcher
+│   ├── memory/                ← WHAT JARVIS KNOWS (COMMITTED — survives
+│   │   ├── profile.md            machine changes; populated for Faris)
+│   │   ├── preferences.md     ├── projects.md    ├── tasks.md
+│   │   └── log/               ← rolling learnings + distilled facts
 │   ├── config/
-│   │   └── jarvis.config.json ← wake word, voice, model choices, dashboard panels
+│   │   └── jarvis.config.json ← wake, voice, brain routing, panels
+│   ├── electron/
+│   │   └── main.js            ← thin Mac shell: starts server, opens window
 │   └── docs/
-│       └── ARCHITECTURE.md    ← deep dive on how Jarvis is wired
+│       ├── ARCHITECTURE.md    ← how it's wired
+│       └── CONNECTORS.md      ← every connector + exact credentials needed
 │
 └── website-builder/           ← PROJECT 1: WEBSITE BUILDER MACHINE
     ├── README.md              ← pipeline overview + CLI usage
@@ -96,10 +99,13 @@ cd JARVIS--FARIS-AI-ASSISTANT
 ./setup.sh
 ```
 
-That's it. See [SETUP.md](SETUP.md) for details, API keys, and Gmail setup.
-
-- **Run Jarvis:** `cd jarvis && npm start`
+- **Run Jarvis (browser, today):** `cd jarvis && npm start` → http://localhost:7747
 - **Run the website builder:** `cd website-builder && node cli.js --help`
+- **On the new Mac:** follow [docs/SETUP-MAC.md](docs/SETUP-MAC.md) —
+  Homebrew, Node, Ollama, whisper.cpp, `npm run mac`. Under an hour to
+  fully operational.
+
+See [SETUP.md](SETUP.md) for API keys and Gmail setup.
 
 ## Operating Principles
 

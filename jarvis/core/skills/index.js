@@ -1,9 +1,15 @@
-// Skill registry + dispatcher.
+// Skill registry + intent router.
 // Every skill exports: { name, description, triggers: [RegExp], execute(input, ctx) }
 // ctx = { brain, memory, config }
 //
-// Anything that doesn't match a skill falls through to open conversation with
-// the brain — Jarvis figures it out. The scope is everything Faris could need.
+// Routing is multi-skill: "what did I miss in my inbox and is there anything
+// from a new client" matches gmail AND web-builder, both run, the answers
+// merge into one reply. Anything matching nothing falls through to open
+// conversation with full memory context. The scope is everything.
+const brain = require('../brain/router')
+const memory = require('../memory/memory')
+const config = require('../config')
+
 const gmail = require('./gmail')
 const news = require('./news')
 const business = require('./business')
@@ -15,42 +21,74 @@ const research = require('./research')
 const files = require('./files')
 const strategy = require('./strategy')
 
-const SKILLS = [gmail, news, business, webBuilder, coding, life, jobhunt, research, files, strategy]
+const SKILLS = [webBuilder, gmail, news, business, jobhunt, life, research, files, coding, strategy]
 
-const PERSONA = `You are JARVIS, Faris's personal AI assistant — calm, sharp,
-loyal, lightly witty in the spirit of the original. You know Faris well; his
-profile, preferences, projects and recent context follow. Speak naturally and
-concisely. Be genuinely useful, never sycophantic. Push back when he's wrong.
-Address him as Faris.`
-
-function detect(input) {
-  return SKILLS.find((s) => s.triggers.some((t) => t.test(input))) || null
+function detectAll(input) {
+  return SKILLS.filter((s) => s.triggers.some((t) => t.test(input)))
 }
 
-async function handle(input, ctx) {
-  // Explicit memory write: "remember that I ..."
+async function handle(input, opts = {}) {
+  const ctx = { brain, memory, config: config.get() }
+  brain.recordTurn('user', input)
+
+  let result
+  // Explicit memory write beats everything: "remember that I ..."
   const rem = input.match(/^(?:jarvis,?\s*)?remember(?:\s+that)?\s+(.+)/i)
   if (rem) {
-    ctx.memory.remember(rem[1])
-    return { reply: `Noted. I'll remember that.`, skill: 'memory' }
+    memory.remember(rem[1])
+    result = { reply: 'Noted. It\'s in the archive.', skills: ['memory'] }
+  } else {
+    const matched = detectAll(input).slice(0, 3)
+    if (matched.length === 0) {
+      const res = await brain.think(input)
+      result = { reply: res.text, skills: ['conversation'], tier: res.tier }
+    } else if (matched.length === 1) {
+      const out = await matched[0].execute(input, ctx)
+      result = { skills: [matched[0].name], ...out }
+    } else {
+      // Run matched skills in parallel, merge into one briefing.
+      const outs = await Promise.all(
+        matched.map((s) =>
+          s.execute(input, ctx).catch((err) => ({ reply: `(${s.name}: ${err.message})` }))
+        )
+      )
+      result = {
+        reply: outs
+          .map((o, i) => `**${labelFor(matched[i].name)}**\n${o.reply}`)
+          .join('\n\n'),
+        spoken: outs.find((o) => o.spoken)?.spoken,
+        skills: matched.map((s) => s.name),
+        tier: outs.some((o) => o.tier === 'frontier') ? 'frontier' : outs[0]?.tier,
+        data: Object.assign({}, ...outs.map((o) => o.data || {})),
+      }
+    }
   }
 
-  const skill = detect(input)
-  if (skill) {
-    const result = await skill.execute(input, ctx)
-    return { skill: skill.name, ...result }
-  }
-
-  // Open conversation — local model with full memory context.
-  const res = await ctx.brain.think(input, {
-    system: `${PERSONA}\n\n# What you know about Faris\n${ctx.memory.contextBlock()}`,
-  })
-  return { reply: res.text, skill: 'conversation', tier: res.tier }
+  brain.recordTurn('jarvis', result.reply)
+  memory.logInteraction(input)
+  brain.distil() // fire and forget — best-effort fact extraction
+  return result
 }
 
-async function run(name, input, ctx) {
+function labelFor(name) {
+  return {
+    gmail: 'Inbox',
+    news: 'Intelligence',
+    business: 'Business',
+    'web-builder': 'Website Builder',
+    coding: 'Code',
+    life: 'Life',
+    jobhunt: 'Job Hunt',
+    research: 'Research',
+    files: 'Files',
+    strategy: 'Strategy',
+  }[name] || name
+}
+
+async function run(name, input) {
   const skill = SKILLS.find((s) => s.name === name)
   if (!skill) throw new Error(`No skill named "${name}"`)
+  const ctx = { brain, memory, config: config.get() }
   return skill.execute(input, ctx)
 }
 
@@ -58,4 +96,4 @@ function list() {
   return SKILLS.map(({ name, description }) => ({ name, description }))
 }
 
-module.exports = { handle, run, list, detect, PERSONA }
+module.exports = { handle, run, list, detectAll }
