@@ -77,7 +77,7 @@ export default function BusinessScreen({ onBack, onAsk }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <tbody>
                   {d.revenue.entries.map((e, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(79,195,247,0.08)' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid var(--hairline)' }}>
                       <td className="mono" style={{ padding: '7px 0', fontSize: 10.5, color: 'var(--text-dim)' }}>{e.date}</td>
                       <td style={{ padding: '7px 12px' }}>{e.label}</td>
                       <td className="mono" style={{ padding: '7px 0', textAlign: 'right', color: 'var(--green)' }}>£{e.amount.toLocaleString()}</td>

@@ -59,7 +59,7 @@ export default function SettingsScreen({ onBack, micStatus }) {
               on={conn.openai === 'configured'}
               detail={conn.openai === 'configured' ? 'key present · fallback frontier' : 'no key · optional alternative'}
             />
-            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(79,195,247,0.1)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--hairline)', display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
                 className="hud-btn"
                 style={config.brain.allowFrontier ? { borderColor: 'var(--green)', color: 'var(--green)' } : {}}
@@ -87,7 +87,7 @@ export default function SettingsScreen({ onBack, micStatus }) {
             <Row label="AUDIO ARRAY" on={micStatus?.ok} detail={micStatus?.text || 'initialising'} />
             <Row label="TEXT TO SPEECH" on detail="browser speech synthesis · swaps to macOS `say` automatically on the Mac" />
             <Row label="WAKE PHRASE ENGINE" warn detail="web speech (best effort) · whisper.cpp replaces it on the Mac" />
-            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(79,195,247,0.1)' }}>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--hairline)' }}>
               <div className="label" style={{ marginBottom: 8 }}>clap sensitivity</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[
@@ -124,7 +124,7 @@ export default function SettingsScreen({ onBack, micStatus }) {
 
 function Row({ label, on, warn, detail }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '8px 0', borderBottom: '1px solid rgba(79,195,247,0.07)' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '8px 0', borderBottom: '1px solid var(--hairline)' }}>
       <span className={`dot ${on ? 'on' : warn ? 'warn' : 'off'}`} style={{ marginTop: 5 }} />
       <div>
         <div className="mono" style={{ fontSize: 10.5, letterSpacing: '0.18em', color: on ? 'var(--text)' : 'var(--text-dim)' }}>{label}</div>

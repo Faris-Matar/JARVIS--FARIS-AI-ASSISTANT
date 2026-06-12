@@ -87,8 +87,7 @@ export default function BuilderScreen({ onBack, onAsk }) {
                   style={{
                     fontSize: 10,
                     letterSpacing: '0.18em',
-                    color: j.waitingOnFaris ? 'var(--gold)' : j.complete ? 'var(--green)' : 'var(--holo)',
-                    textShadow: 'var(--glow-sm)',
+                    color: j.waitingOnFaris ? 'var(--gold)' : j.complete ? 'var(--green)' : 'var(--text-dim)',
                     flexShrink: 0,
                   }}
                 >
@@ -107,7 +106,7 @@ export default function BuilderScreen({ onBack, onAsk }) {
 
               {/* direction approval — the human gate, surfaced in the HUD */}
               {j.waitingOnFaris && (
-                <div style={{ border: '1px solid rgba(255,198,110,0.35)', padding: 14, background: 'rgba(255,198,110,0.05)' }}>
+                <div style={{ border: '1px solid var(--gold-35)', padding: 14, background: 'rgba(200,169,110,0.04)' }}>
                   <div className="label" style={{ color: 'var(--gold)', marginBottom: 10 }}>
                     your call — choose the design direction
                   </div>
@@ -118,7 +117,7 @@ export default function BuilderScreen({ onBack, onAsk }) {
                         className="hud-btn"
                         style={
                           approval[j.client]?.direction === n
-                            ? { background: 'rgba(255,198,110,0.18)', borderColor: 'var(--gold)', color: 'var(--gold)' }
+                            ? { background: 'var(--gold-15)', borderColor: 'var(--gold)', color: 'var(--gold)' }
                             : {}
                         }
                         onClick={() => setApproval({ ...approval, [j.client]: { ...approval[j.client], direction: n } })}
@@ -145,7 +144,7 @@ export default function BuilderScreen({ onBack, onAsk }) {
               )}
 
               {open?.startsWith(j.client + '/') && (
-                <div style={{ border: '1px solid var(--panel-border)', padding: 16, maxHeight: 340, overflowY: 'auto', background: 'rgba(2,6,12,0.6)' }}>
+                <div style={{ border: '1px solid var(--panel-border)', padding: 16, maxHeight: 340, overflowY: 'auto', background: 'rgba(255,255,255,0.015)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span className="label label-bright">{open.split('/')[1]}</span>
                     <button className="hud-btn" style={{ fontSize: 9, padding: '3px 9px' }} onClick={() => setOpen(null)}>close</button>

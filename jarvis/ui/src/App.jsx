@@ -60,7 +60,7 @@ export default function App() {
     try {
       const [s, w] = await Promise.all([api.status(), api.wake()])
       setStatus(s)
-      // greet during the boot sequence — Jarvis talks while systems light up
+      // greet while the systems come online — Jarvis talks during boot
       speak(w.greeting)
       pushMessage('jarvis', w.greeting, { old: false })
     } catch {
@@ -131,7 +131,6 @@ export default function App() {
   return (
     <>
       <div className="atmosphere" />
-      <div className="scanlines" />
 
       <AnimatePresence mode="wait">
         {phase === 'standby' && <Standby key="standby" micStatus={micStatus} onWake={wake} />}
@@ -143,34 +142,37 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', zIndex: 2 }}
           >
             <TopBar screen={screen} setScreen={setScreen} status={status} micStatus={micStatus} />
 
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'minmax(360px, 30%) 1fr', gap: 14, padding: 14, minHeight: 0 }}>
-              {/* conversation: always present, the spine of the product */}
+            <div
+              style={{
+                flex: 1,
+                display: 'grid',
+                gridTemplateColumns: 'minmax(380px, 31%) 1fr',
+                minHeight: 0,
+              }}
+            >
+              {/* conversation: the spine, divided by a single hairline */}
               <motion.div
-                initial={{ x: -30, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0, x: -18 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.85, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
                 style={{
-                  background: 'var(--panel-bg)',
-                  border: '1px solid var(--panel-border)',
-                  clipPath: 'polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px)',
-                  padding: 16,
+                  borderRight: '1px solid var(--hairline)',
+                  padding: '26px 26px 22px 28px',
                   minHeight: 0,
-                  backdropFilter: 'blur(8px)',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <div className="label label-bright" style={{ marginBottom: 10 }}>conversation</div>
-                <div style={{ height: 'calc(100% - 26px)' }}>
-                  <Conversation messages={messages} busy={busy} listening={listening} onSend={(t) => ask(t, false)} onMic={mic} />
-                </div>
+                <Conversation messages={messages} busy={busy} listening={listening} onSend={(t) => ask(t, false)} onMic={mic} />
               </motion.div>
 
-              {/* right region: dashboard ⇄ skill screens */}
-              <div style={{ minHeight: 0, position: 'relative' }}>
+              {/* right region: overview ⇄ skill screens */}
+              <div style={{ minHeight: 0, position: 'relative', padding: '26px 30px 22px' }}>
                 <AnimatePresence mode="wait">
                   {screen === 'dashboard' && <Dashboard key="dash" data={dash} setScreen={setScreen} />}
                   {screen === 'gmail' && <GmailScreen key="gmail" onBack={() => setScreen('dashboard')} onAsk={askFromScreen} />}

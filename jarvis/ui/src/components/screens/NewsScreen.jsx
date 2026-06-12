@@ -5,9 +5,9 @@ import { Pending, Err } from '../Dashboard.jsx'
 import { api } from '../../api.js'
 
 const CATEGORIES = [
-  { id: 'world', label: 'WORLD', accent: 'var(--holo)' },
-  { id: 'ai', label: 'AI INDUSTRY', accent: 'var(--green)' },
-  { id: 'tech', label: 'TECH', accent: 'var(--gold)' },
+  { id: 'world', label: 'WORLD' },
+  { id: 'ai', label: 'AI INDUSTRY' },
+  { id: 'tech', label: 'TECH' },
 ]
 
 // News skill screen — the full curated briefing, grouped by category,
@@ -50,7 +50,7 @@ export default function NewsScreen({ onBack }) {
             {CATEGORIES.map((cat, ci) => {
               const items = (briefing.items || []).filter((it) => it.category === cat.id)
               return (
-                <Panel key={cat.id} title={cat.label} accent={cat.accent} delay={ci * 0.08}>
+                <Panel key={cat.id} title={cat.label} delay={ci * 0.08}>
                   {items.length === 0 && <Err text="No items in this cycle." warn />}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
                     {items.map((it, i) => (
@@ -68,7 +68,7 @@ export default function NewsScreen({ onBack }) {
                             {it.summary}
                           </div>
                         )}
-                        <div className="mono" style={{ fontSize: 9, color: cat.accent, letterSpacing: '0.16em', marginTop: 4, opacity: 0.8 }}>
+                        <div className="mono" style={{ fontSize: 9, color: 'var(--text-faint)', letterSpacing: '0.16em', marginTop: 4, opacity: 0.8 }}>
                           {it.source?.toUpperCase()}
                         </div>
                       </article>

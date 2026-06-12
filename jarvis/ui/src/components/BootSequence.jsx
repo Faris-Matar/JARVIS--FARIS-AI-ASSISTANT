@@ -1,112 +1,126 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Reactor from './Reactor.jsx'
 
-// Boot — systems come online one by one, with REAL state from /api/status
-// driving each line (a missing key shows STANDBY, a dead Ollama shows
-// OFFLINE — the boot doesn't lie). Then the HUD assembles.
-const STEP_MS = 340
+// Boot — cinematic. Each system takes the stage alone: name materialises,
+// status resolves, it yields to the next. Real state from /api/status
+// drives every line; the boot doesn't lie. A hairline of progress is the
+// only chrome.
+const STEP_MS = 620
 
 export default function BootSequence({ status, onDone }) {
   const systems = useMemo(() => buildSystems(status), [status])
-  const [lit, setLit] = useState(0)
+  const [idx, setIdx] = useState(0)
 
   useEffect(() => {
-    if (lit < systems.length) {
-      const t = setTimeout(() => setLit(lit + 1), STEP_MS)
+    if (idx < systems.length) {
+      const t = setTimeout(() => setIdx(idx + 1), STEP_MS)
       return () => clearTimeout(t)
     }
-    const t = setTimeout(onDone, 700)
+    const t = setTimeout(onDone, 850)
     return () => clearTimeout(t)
-  }, [lit, systems.length, onDone])
+  }, [idx, systems.length, onDone])
 
-  const progress = lit / systems.length
+  const current = systems[Math.min(idx, systems.length - 1)]
+  const progress = Math.min(1, idx / systems.length)
+  const done = idx >= systems.length
 
   return (
     <motion.div
       key="boot"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: 'brightness(3)' }}
-      transition={{ duration: 0.35 }}
+      exit={{ opacity: 0, filter: 'brightness(2) blur(3px)' }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 5,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 90,
       }}
     >
-      <motion.div
-        initial={{ scale: 1.4, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <Reactor size={170} intensity={1.4} />
-      </motion.div>
-
-      <div style={{ width: 420 }}>
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="label label-bright"
-          style={{ fontSize: 12, marginBottom: 18 }}
-        >
-          initialising systems
-        </motion.div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          <AnimatePresence>
-            {systems.slice(0, lit).map((sys, i) => (
-              <motion.div
-                key={sys.name}
-                initial={{ opacity: 0, x: -22 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.28, ease: 'easeOut' }}
-                className="mono"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 11.5,
-                  letterSpacing: '0.12em',
-                  padding: '7px 12px',
-                  background: 'linear-gradient(90deg, rgba(79,195,247,0.07), transparent)',
-                  borderLeft: `2px solid ${stateColor(sys.state)}`,
-                }}
-              >
-                <span style={{ color: 'var(--text)' }}>{sys.name}</span>
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.12 }}
-                  style={{ color: stateColor(sys.state), textShadow: `0 0 8px ${stateColor(sys.state)}55` }}
-                >
-                  {sys.state}
-                </motion.span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* progress rail */}
-        <div style={{ marginTop: 22, height: 2, background: 'rgba(79,195,247,0.15)', position: 'relative' }}>
+      {/* the stage */}
+      <div style={{ height: 130, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <AnimatePresence mode="wait">
           <motion.div
-            animate={{ width: `${progress * 100}%` }}
-            transition={{ ease: 'linear' }}
-            style={{
-              position: 'absolute',
-              left: 0, top: 0, bottom: 0,
-              background: 'var(--holo)',
-              boxShadow: 'var(--glow-sm)',
-            }}
-          />
-        </div>
-        <div className="mono" style={{ fontSize: 9, color: 'var(--text-dim)', marginTop: 8, letterSpacing: '0.2em' }}>
-          {Math.round(progress * 100)}% — {lit < systems.length ? systems[Math.min(lit, systems.length - 1)].name : 'assembling interface'}
-        </div>
+            key={done ? '__done' : current.name}
+            initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -14, filter: 'blur(6px)' }}
+            transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--display)',
+                fontWeight: 300,
+                fontSize: 24,
+                letterSpacing: '0.34em',
+                color: 'var(--text)',
+                textAlign: 'center',
+                marginLeft: '0.34em',
+              }}
+            >
+              {done ? 'ALL SYSTEMS' : current.name}
+            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.22, duration: 0.3 }}
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.4em',
+                marginLeft: '0.4em',
+                color: stateColor(done ? 'ONLINE' : current.state),
+              }}
+            >
+              {done ? 'READY' : current.state}
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* progress hairline */}
+      <div style={{ width: 300, height: 1, background: 'var(--hairline)', marginTop: 44, position: 'relative' }}>
+        <motion.div
+          animate={{ width: `${progress * 100}%` }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: 'absolute',
+            left: 0, top: 0, bottom: 0,
+            background: 'var(--holo)',
+          }}
+        />
+      </div>
+
+      {/* the quiet record of what's already up */}
+      <div
+        style={{
+          marginTop: 40,
+          height: 90,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+          overflow: 'hidden',
+        }}
+      >
+        {systems.slice(0, idx).slice(-5).map((sys) => (
+          <motion.div
+            key={sys.name}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="mono"
+            style={{ fontSize: 9, letterSpacing: '0.22em', color: 'var(--text-faint)', display: 'flex', gap: 14 }}
+          >
+            <span>{sys.name}</span>
+            <span style={{ color: stateColor(sys.state), opacity: 0.75 }}>{sys.state}</span>
+          </motion.div>
+        ))}
       </div>
     </motion.div>
   )
@@ -125,12 +139,12 @@ function buildSystems(status) {
   return [
     { name: 'CORE INTERFACE', state: 'ONLINE' },
     { name: 'MEMORY ARCHIVE', state: s.memory ? 'ONLINE' : 'OFFLINE' },
-    { name: 'LOCAL INTELLIGENCE · OLLAMA', state: s.brain?.localOnline ? 'ONLINE' : 'STANDBY' },
-    { name: 'FRONTIER LINK · ' + (s.brain?.frontier || 'NONE').toUpperCase(), state: s.brain?.frontierConfigured ? 'ONLINE' : 'STANDBY' },
-    { name: 'AUDIO ARRAY · WAKE DETECTION', state: 'ONLINE' },
+    { name: 'LOCAL INTELLIGENCE', state: s.brain?.localOnline ? 'ONLINE' : 'STANDBY' },
+    { name: 'FRONTIER LINK', state: s.brain?.frontierConfigured ? 'ONLINE' : 'STANDBY' },
+    { name: 'AUDIO ARRAY', state: 'ONLINE' },
     { name: 'GMAIL CONNECTOR', state: conn.gmail === 'connected' ? 'ONLINE' : 'STANDBY' },
-    { name: 'NEWS INTELLIGENCE FEEDS', state: 'ONLINE' },
-    { name: 'WEBSITE BUILDER PIPELINE', state: conn.builder ? 'ONLINE' : 'STANDBY' },
-    { name: 'SKILL MATRIX · 10 MODULES', state: 'ONLINE' },
+    { name: 'INTELLIGENCE FEEDS', state: 'ONLINE' },
+    { name: 'BUILD PIPELINE', state: conn.builder ? 'ONLINE' : 'STANDBY' },
+    { name: 'SKILL MATRIX', state: 'ONLINE' },
   ]
 }

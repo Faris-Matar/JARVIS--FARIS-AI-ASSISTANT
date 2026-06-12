@@ -22,12 +22,11 @@ function Block({ block }) {
           className={level === 1 ? '' : 'label'}
           style={{
             fontFamily: level === 1 ? 'var(--display)' : undefined,
-            fontWeight: 600,
-            fontSize: level === 1 ? 19 : 11,
-            color: 'var(--holo-bright)',
-            textShadow: 'var(--glow-sm)',
-            margin: '14px 0 6px',
-            letterSpacing: level === 1 ? '0.06em' : undefined,
+            fontWeight: level === 1 ? 400 : undefined,
+            fontSize: level === 1 ? 19 : 10,
+            color: level === 1 ? 'var(--text)' : 'var(--text-dim)',
+            margin: '16px 0 8px',
+            letterSpacing: level === 1 ? '0.05em' : undefined,
           }}
         >
           {inline(lines[0].replace(/^#+ /, ''))}
@@ -66,7 +65,7 @@ function inline(text) {
     }
     if (p.startsWith('`')) {
       return (
-        <code key={i} className="mono" style={{ fontSize: '0.88em', color: 'var(--gold)', background: 'rgba(255,198,110,0.08)', padding: '1px 5px' }}>
+        <code key={i} className="mono" style={{ fontSize: '0.88em', color: 'var(--gold)', background: 'var(--gold-15)', padding: '1px 5px' }}>
           {p.slice(1, -1)}
         </code>
       )

@@ -1,29 +1,55 @@
 /* ════════════════════════════════════════════════════════════════════
-   J.A.R.V.I.S — holographic HUD theme
-   Deep void background, holographic cyan, glow everywhere, alive.
+   JARVIS — design system
+   Deep black foundation. Holographic blue, precise and selective.
+   Gold for what matters most. Dark, clean, expensive.
    ════════════════════════════════════════════════════════════════════ */
 :root {
-  --void: #020409;
-  --void-2: #050b14;
-  --holo: #4fc3f7;
-  --holo-bright: #9be7ff;
-  --holo-deep: #1565a0;
-  --holo-08: rgba(79, 195, 247, 0.08);
-  --holo-15: rgba(79, 195, 247, 0.15);
-  --holo-25: rgba(79, 195, 247, 0.25);
-  --holo-40: rgba(79, 195, 247, 0.4);
-  --gold: #ffc66e;
-  --red: #ff5e62;
-  --green: #69f0ae;
-  --text: #d6efff;
-  --text-dim: #5e84a0;
-  --display: 'Rajdhani', 'Helvetica Neue', sans-serif;
-  --mono: 'Share Tech Mono', 'SF Mono', ui-monospace, monospace;
-  --glow-sm: 0 0 8px rgba(79, 195, 247, 0.45);
-  --glow-md: 0 0 18px rgba(79, 195, 247, 0.5);
-  --glow-lg: 0 0 42px rgba(79, 195, 247, 0.55);
-  --panel-bg: linear-gradient(160deg, rgba(10, 28, 48, 0.72), rgba(4, 12, 24, 0.82));
-  --panel-border: rgba(79, 195, 247, 0.22);
+  /* foundation: true blacks, not navy */
+  --void: #050506;
+  --black-1: #0a0a0c;
+  --black-2: #0e0f11;
+
+  /* holographic blue — highlights, active elements, important data only */
+  --holo: #6ac1e8;
+  --holo-bright: #b7e6ff;
+  --holo-deep: #38667e;
+  --holo-08: rgba(106, 193, 232, 0.08);
+  --holo-15: rgba(106, 193, 232, 0.14);
+  --holo-25: rgba(106, 193, 232, 0.24);
+  --holo-40: rgba(106, 193, 232, 0.4);
+
+  /* gold — sparing, for the most important elements */
+  --gold: #c8a96e;
+  --gold-bright: #e3c890;
+  --gold-15: rgba(200, 169, 110, 0.15);
+  --gold-35: rgba(200, 169, 110, 0.35);
+
+  /* status */
+  --green: #84d9ad;
+  --red: #d98484;
+
+  /* type */
+  --text: #eceef0;
+  --text-dim: #8e979e;
+  --text-faint: #565e65;
+
+  /* structure: hairlines, not boxes */
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.13);
+  --panel-border: var(--hairline);
+  --panel-bg: rgba(255, 255, 255, 0.012);
+  --raise: rgba(255, 255, 255, 0.025);
+
+  --display: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* glow is earned, never ambient */
+  --glow-sm: 0 0 10px rgba(106, 193, 232, 0.35);
+  --glow-md: 0 0 22px rgba(106, 193, 232, 0.4);
+
+  /* motion: liquid, considered */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-soft: cubic-bezier(0.45, 0, 0.15, 1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -34,166 +60,123 @@ body {
   background: var(--void);
   color: var(--text);
   font-family: var(--display);
+  font-weight: 300;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   user-select: none;
 }
 
-/* ── Atmospheric layers behind everything ─────────────────────────── */
+/* ── Atmosphere: barely there ──────────────────────────────────────── */
 .atmosphere {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-}
-.atmosphere::before {
-  /* nebula glow */
-  content: '';
-  position: absolute;
-  inset: 0;
   background:
-    radial-gradient(ellipse 70% 50% at 50% -12%, rgba(21, 101, 160, 0.32), transparent 70%),
-    radial-gradient(ellipse 45% 40% at 88% 108%, rgba(21, 101, 160, 0.18), transparent 70%),
-    radial-gradient(ellipse 35% 35% at 8% 95%, rgba(13, 70, 110, 0.16), transparent 70%);
+    radial-gradient(ellipse 65% 45% at 50% -8%, rgba(56, 102, 126, 0.13), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 92% 110%, rgba(56, 102, 126, 0.05), transparent 70%);
 }
 .atmosphere::after {
-  /* engineering grid */
+  /* vignette — pulls the eye in, makes black feel deep not flat */
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(79, 195, 247, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 195, 247, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(79, 195, 247, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 195, 247, 0.025) 1px, transparent 1px);
-  background-size: 160px 160px, 160px 160px, 32px 32px, 32px 32px;
-  mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 35%, transparent 100%);
+  background: radial-gradient(ellipse 110% 100% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.5) 100%);
 }
 
-/* scanlines + moving sweep, over everything, very subtle */
-.scanlines {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  background: linear-gradient(rgba(155, 231, 255, 0.022) 50%, transparent 50%);
-  background-size: 100% 4px;
-  mix-blend-mode: screen;
-}
-.scanlines::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 140px;
-  background: linear-gradient(180deg, transparent, rgba(79, 195, 247, 0.045), transparent);
-  animation: sweep 9s linear infinite;
-}
-@keyframes sweep {
-  0% { top: -140px; }
-  100% { top: 100%; }
-}
-
-/* ── Type helpers ──────────────────────────────────────────────────── */
-.mono { font-family: var(--mono); }
+/* ── Type system ───────────────────────────────────────────────────── */
+.mono { font-family: var(--mono); font-weight: 300; }
 .label {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.32em;
-  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 9.5px;
+  letter-spacing: 0.3em;
+  color: var(--text-faint);
   text-transform: uppercase;
 }
-.label-bright { color: var(--holo); text-shadow: var(--glow-sm); }
+.label-bright { color: var(--text-dim); }
 .value-lg {
   font-family: var(--display);
-  font-weight: 600;
-  font-size: 28px;
-  color: var(--holo-bright);
-  text-shadow: var(--glow-sm);
-  letter-spacing: 0.04em;
+  font-weight: 300;
+  font-size: 30px;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
-/* ── Scrollbars ────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 3px; height: 3px; }
+/* ── Scrollbars: invisible until needed ────────────────────────────── */
+::-webkit-scrollbar { width: 2px; height: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--holo-40); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--hairline-strong); }
 
-/* ── Buttons & inputs ──────────────────────────────────────────────── */
+/* ── Controls ──────────────────────────────────────────────────────── */
 .hud-btn {
   background: transparent;
-  border: 1px solid var(--panel-border);
-  color: var(--holo);
+  border: 1px solid var(--hairline-strong);
+  color: var(--text-dim);
   font-family: var(--mono);
-  font-size: 11px;
+  font-weight: 400;
+  font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  padding: 8px 16px;
+  padding: 9px 18px;
   cursor: pointer;
-  position: relative;
-  transition: all 0.18s ease;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: color 0.45s var(--ease), border-color 0.45s var(--ease), background 0.45s var(--ease);
 }
 .hud-btn:hover {
-  background: var(--holo-15);
-  border-color: var(--holo);
-  box-shadow: var(--glow-sm), inset 0 0 12px var(--holo-08);
-  text-shadow: var(--glow-sm);
+  color: var(--text);
+  border-color: var(--holo-40);
+  background: var(--holo-08);
 }
-.hud-btn:active { transform: scale(0.97); }
-.hud-btn.primary { background: var(--holo-15); border-color: var(--holo); }
-.hud-btn.danger { color: var(--red); border-color: rgba(255, 94, 98, 0.4); }
-.hud-btn.danger:hover { background: rgba(255, 94, 98, 0.12); box-shadow: 0 0 12px rgba(255, 94, 98, 0.4); }
-.hud-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+.hud-btn:active { transition-duration: 0.1s; background: var(--holo-15); }
+.hud-btn.primary { color: var(--gold); border-color: var(--gold-35); }
+.hud-btn.primary:hover { color: var(--gold-bright); border-color: var(--gold); background: var(--gold-15); }
+.hud-btn.danger { color: var(--red); border-color: rgba(217, 132, 132, 0.3); }
+.hud-btn.danger:hover { background: rgba(217, 132, 132, 0.08); border-color: var(--red); }
+.hud-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
 .hud-input {
-  background: rgba(4, 12, 24, 0.85);
-  border: 1px solid var(--panel-border);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--hairline-strong);
   color: var(--text);
   font-family: var(--display);
-  font-weight: 500;
+  font-weight: 300;
   font-size: 15px;
-  letter-spacing: 0.02em;
-  padding: 11px 14px;
+  letter-spacing: 0.01em;
+  padding: 10px 2px;
   outline: none;
   width: 100%;
-  transition: all 0.18s ease;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: border-color 0.5s var(--ease);
 }
-.hud-input:focus {
-  border-color: var(--holo);
-  box-shadow: var(--glow-sm), inset 0 0 18px var(--holo-08);
+.hud-input:focus { border-color: var(--holo); }
+.hud-input::placeholder { color: var(--text-faint); }
+
+textarea.hud-input {
+  border: 1px solid var(--hairline);
+  padding: 12px 14px;
+  line-height: 1.6;
 }
-.hud-input::placeholder { color: var(--text-dim); }
+textarea.hud-input:focus { border-color: var(--holo-40); }
 
 /* ── Status dots ───────────────────────────────────────────────────── */
-.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-.dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); animation: dotPulse 2.4s ease-in-out infinite; }
-.dot.off { background: #45586a; }
-.dot.warn { background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: dotPulse 1.4s ease-in-out infinite; }
-.dot.holo { background: var(--holo); box-shadow: 0 0 8px var(--holo); animation: dotPulse 2.4s ease-in-out infinite; }
+.dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot.on { background: var(--green); animation: dotPulse 3.5s var(--ease-soft) infinite; }
+.dot.off { background: var(--text-faint); opacity: 0.5; }
+.dot.warn { background: var(--gold); animation: dotPulse 2.5s var(--ease-soft) infinite; }
+.dot.holo { background: var(--holo); box-shadow: var(--glow-sm); animation: dotPulse 3.5s var(--ease-soft) infinite; }
 @keyframes dotPulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  50% { opacity: 0.35; }
 }
 
 /* ── Shared keyframes ──────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes spinR { to { transform: rotate(-360deg); } }
 @keyframes breathe {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.04); }
-}
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  92% { opacity: 1; }
-  93% { opacity: 0.4; }
-  94% { opacity: 1; }
-  97% { opacity: 0.7; }
-  98% { opacity: 1; }
-}
-@keyframes dash {
-  to { stroke-dashoffset: -200; }
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
 }
 
-/* selection */
-::selection { background: var(--holo-25); color: var(--holo-bright); }
+::selection { background: var(--holo-25); color: var(--text); }

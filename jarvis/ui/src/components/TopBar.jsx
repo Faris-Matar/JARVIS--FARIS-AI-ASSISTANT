@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import Reactor from './Reactor.jsx'
 
 const NAV = [
-  { id: 'dashboard', label: 'OVERVIEW' },
-  { id: 'gmail', label: 'INBOX' },
-  { id: 'news', label: 'INTEL' },
-  { id: 'builder', label: 'BUILDER' },
-  { id: 'business', label: 'BUSINESS' },
-  { id: 'research', label: 'RESEARCH' },
-  { id: 'memory', label: 'MEMORY' },
-  { id: 'settings', label: 'SYSTEMS' },
+  { id: 'dashboard', label: 'Overview' },
+  { id: 'gmail', label: 'Inbox' },
+  { id: 'news', label: 'Intel' },
+  { id: 'builder', label: 'Builder' },
+  { id: 'business', label: 'Business' },
+  { id: 'research', label: 'Research' },
+  { id: 'memory', label: 'Memory' },
+  { id: 'settings', label: 'Systems' },
 ]
 
+// One slim rail. Wordmark, navigation, three truths (local, frontier,
+// audio), the time. Gold marks the active place — nothing else competes.
 export default function TopBar({ screen, setScreen, status, micStatus }) {
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -25,38 +26,36 @@ export default function TopBar({ screen, setScreen, status, micStatus }) {
 
   return (
     <motion.header
-      initial={{ y: -52, opacity: 0 }}
+      initial={{ y: -30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 26,
-        padding: '10px 22px',
-        borderBottom: '1px solid rgba(79,195,247,0.16)',
-        background: 'linear-gradient(180deg, rgba(8,20,36,0.65), rgba(4,10,20,0.35))',
-        backdropFilter: 'blur(10px)',
+        gap: 40,
+        padding: '0 28px',
+        height: 58,
+        borderBottom: '1px solid var(--hairline)',
         flexShrink: 0,
         zIndex: 10,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <Reactor size={34} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span className="dot holo" />
         <span
           style={{
             fontFamily: 'var(--display)',
-            fontWeight: 500,
-            fontSize: 17,
+            fontWeight: 400,
+            fontSize: 13,
             letterSpacing: '0.5em',
-            color: 'var(--holo-bright)',
-            textShadow: 'var(--glow-sm)',
+            color: 'var(--text)',
           }}
         >
-          J.A.R.V.I.S
+          JARVIS
         </span>
       </div>
 
-      <nav style={{ display: 'flex', gap: 4, marginLeft: 10 }}>
+      <nav style={{ display: 'flex', gap: 26 }}>
         {NAV.map((item) => {
           const active = screen === item.id
           return (
@@ -65,32 +64,51 @@ export default function TopBar({ screen, setScreen, status, micStatus }) {
               onClick={() => setScreen(item.id)}
               className="mono"
               style={{
-                background: active ? 'var(--holo-15)' : 'transparent',
+                position: 'relative',
+                background: 'transparent',
                 border: 'none',
-                borderBottom: active ? '1px solid var(--holo)' : '1px solid transparent',
-                color: active ? 'var(--holo-bright)' : 'var(--text-dim)',
-                textShadow: active ? 'var(--glow-sm)' : 'none',
+                color: active ? 'var(--text)' : 'var(--text-faint)',
                 fontSize: 10,
-                letterSpacing: '0.22em',
-                padding: '7px 13px',
+                fontWeight: 400,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                padding: '6px 0',
                 cursor: 'pointer',
-                transition: 'all 0.18s ease',
+                transition: 'color 0.5s var(--ease)',
               }}
             >
               {item.label}
+              {active && (
+                <motion.span
+                  layoutId="nav-underline"
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: -2,
+                    height: 1,
+                    background: 'var(--gold)',
+                  }}
+                />
+              )}
             </button>
           )
         })}
       </nav>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 20 }}>
-        <Indicator on={localOn} label={localOn ? 'LOCAL CORE' : 'LOCAL OFFLINE'} />
-        <Indicator on={frontier} warn={!frontier} label={frontier ? `FRONTIER · ${(status?.brain?.frontier || '').toUpperCase()}` : 'FRONTIER STANDBY'} />
-        <Indicator on={micStatus?.ok} label="AUDIO" />
-        <span className="mono" style={{ fontSize: 12, color: 'var(--holo)', letterSpacing: '0.12em', textShadow: 'var(--glow-sm)' }}>
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 24 }}>
+        <Indicator on={localOn} label="local" />
+        <Indicator on={frontier} warn={!frontier} label="frontier" />
+        <Indicator on={micStatus?.ok} label="audio" />
+        <span
+          className="mono"
+          style={{ fontSize: 11, color: 'var(--text-dim)', letterSpacing: '0.14em', marginLeft: 8 }}
+        >
           {now.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' }).toUpperCase()}
-          {'  '}
-          {now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          <span style={{ color: 'var(--text)', marginLeft: 12 }}>
+            {now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+          </span>
         </span>
       </div>
     </motion.header>
@@ -101,7 +119,9 @@ function Indicator({ on, warn, label }) {
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
       <span className={`dot ${on ? 'on' : warn ? 'warn' : 'off'}`} />
-      <span className="mono" style={{ fontSize: 9, letterSpacing: '0.2em', color: 'var(--text-dim)' }}>{label}</span>
+      <span className="mono" style={{ fontSize: 8.5, letterSpacing: '0.26em', color: 'var(--text-faint)', textTransform: 'uppercase' }}>
+        {label}
+      </span>
     </span>
   )
 }

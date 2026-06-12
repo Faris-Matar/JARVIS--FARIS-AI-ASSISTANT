@@ -151,7 +151,7 @@ function MessageRow({ msg, onAction, actionLabel, highlight, busy }) {
         alignItems: 'center',
         gap: 14,
         padding: '9px 4px',
-        borderBottom: '1px solid rgba(79,195,247,0.08)',
+        borderBottom: '1px solid var(--hairline)',
       }}
     >
       <div style={{ flex: 1, minWidth: 0 }}>
